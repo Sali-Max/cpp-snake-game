@@ -14,23 +14,24 @@ class snake
     private:
         Direction direction = none;
         bool getFood = false;
+        int snake_delay = 200000;
     public:
         
         vector<pair<int, int>> body = {{0,0}, {0,0}};   
         int food_x = 4;
         int food_y = 3;
-    
+
         void generate_food(int h, int w)
         {
             if(getFood == true)
             {
                 srand(time(0));
-                food_y = rand() % h;
-                food_x = rand() % w;
+                food_y = (rand() % (h-2))+1;
+                food_x = (rand() % (w-2))+1;
                 
-        
+                
+                                
                 body.push_back({body.back().first, body.back().second });
-
 
                 getFood = false;
             }
@@ -51,6 +52,10 @@ class snake
             return getFood;
         }
         
+        int get_delay()
+        {
+            return snake_delay;
+        }
         void move_up()
         {
             if(direction != Direction::down)
@@ -125,6 +130,8 @@ void run(int h, int w, snake& object)
 {
     int start_y = h / 2;    //Start Position
     int start_x = w / 2;
+
+    
 
     initscr();
     noecho();
@@ -218,7 +225,7 @@ void run(int h, int w, snake& object)
 
         
         refresh();
-        usleep(200000);
+        usleep(object.get_delay()); //Snake Speed
     }
 
 
@@ -229,6 +236,6 @@ int main()
 {
     snake player;
 
-    run(24,24, player);
+    run(6,6 , player);
     return 0;
 }
