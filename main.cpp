@@ -11,10 +11,41 @@ enum Direction {up, down, left, right, none};
 class snake
 {
     private:
-        int size = 1;
+        int body_size = 2;
         Direction direction = up;
+        bool getFood = false;
     public:
-        vector<pair<int, int>> body = {{0,0}};
+
+        vector<pair<int, int>> body = {{12,19}, {12,10}};
+        int food_x = 4;
+        int food_y = 3;
+    
+        void generate_food(int h, int w)
+        {
+            if(getFood == true)
+            {
+                srand(time(0));
+                food_y = rand() % h;
+                food_x = rand() % w;
+                getFood = false;
+            }
+    
+            mvprintw(food_y,food_x, "*");
+        }
+        
+        void foodSetFalse()
+        {
+            getFood = false;
+        }
+        void foodSetTrue()
+        {
+            getFood = true;
+        }
+        bool footStatus()
+        {
+            return getFood;
+        }
+        
         void move_up()
         {
             direction = Direction::up;
@@ -45,17 +76,38 @@ class snake
         }
         int get_size()
         {
-            return size;
+            return body_size;
         }
         void add_size()
         {
-            size++;
+            body_size++;
         }
 };
 
 
 
-void run(int h, int w, snake object)
+void drawFrame(int h, int w)
+{
+    for (size_t i = 0; i < w; i++)
+    {
+        printw("#");
+    }
+    printw("\n");
+    for (int i=1; i < (h-1); i++) {
+        printw("#");
+        // cout << setw(w - 1) << "#";
+        mvprintw(i, w-1, "#");
+        printw("\n");
+    }
+    for (size_t i = 0; i < w; i++)
+    {
+        printw("#");
+    }
+}
+
+
+
+void run(int h, int w, snake& object)
 {
     int start_y = h / 2;    //Start Position
     int start_x = w / 2;
@@ -65,39 +117,17 @@ void run(int h, int w, snake object)
     curs_set(0);
     keypad(stdscr, TRUE); // Special key
 
-
+    
     
 
     while (true)
     {
         clear();
-        { //Frame
-            for (size_t i = 0; i < w; i++)
-            {
-                printw("#");
-            }
-            printw("\n");
-            for (int i=1; i < (h-1); i++) {
-                printw("#");
-                // cout << setw(w - 1) << "#";
-                mvprintw(i, w-1, "#");
-                printw("\n");
-            }
-            for (size_t i = 0; i < w; i++)
-            {
-                printw("#");
-            }
-
-        }
         
+        drawFrame(h, w);
         
-        //update body
-        if(object.whatis_direction() != Direction::none)    //fix hide body
-        {
-            object.set_body_value(start_x, start_y, 0);
-        }
 
-        // Update snake Position
+        // Update head Position
         if(object.whatis_direction() == Direction::up)
         {
             start_y++;
@@ -115,15 +145,32 @@ void run(int h, int w, snake object)
             start_x++;   
         }
 
-        mvprintw(start_y, start_x, "@");    //Draw Snake head
-        for (size_t i = 0; i < object.get_size(); i++)
+        //update body Position
+        if(object.whatis_direction() != Direction::none)    //fix Press other key to hide body
+        {
+            for (size_t i = object.get_size() ; i > 1; i--)
+            {
+                object.set_body_value(object.body.back().first, object.body.back().second, i-1);
+            }
+            object.set_body_value(start_x, start_y, 0);
+        }
+
+
+        mvprintw(start_y, start_x, "@");    //Draw head
+        for (size_t i = 0; i < object.get_size(); i++)  //Drow Body
         {
             mvprintw(object.body[i].second,object.body[i].first,"@");
         }
         
-        
-        
-        { // Direction get and set Value
+
+        if(start_x == object.food_x and start_y == object.food_y) //check get food
+        {
+            object.foodSetTrue();
+        }
+
+        object.generate_food(h, w);
+
+        {   //input
             int key = getch();
             if(key == 258) //UP
             {
@@ -151,6 +198,7 @@ void run(int h, int w, snake object)
                 object.move_none();
             }
         }
+
         
         refresh();
     }
@@ -163,6 +211,6 @@ int main()
 {
     snake player;
 
-    run(15,25, player);
+    run(24,24, player);
     return 0;
 }
