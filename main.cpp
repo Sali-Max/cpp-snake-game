@@ -12,7 +12,7 @@ enum Direction {up, down, left, right, none};
 class snake
 {
     private:
-        Direction direction = up;
+        Direction direction = none;
         bool getFood = false;
     public:
         
@@ -128,12 +128,16 @@ void run(int h, int w, snake& object)
 
     initscr();
     noecho();
-    curs_set(0);
+
+    //curs_set(0);
+
+    nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE); // Special key
 
     
     while (true)
     {
+        
         clear();
         
         drawFrame(h, w);
@@ -145,10 +149,8 @@ void run(int h, int w, snake& object)
             {
                 object.set_body_value(object.body[i-1].first, object.body[i-1].second, i);
             }
-            
+        
 
-
-            // object.set_body_value(object.body.back().first, object.body.back().second, 1);
             object.set_body_value(start_x, start_y, 1);
             
         }
@@ -212,14 +214,11 @@ void run(int h, int w, snake& object)
                 endwin();
                 exit(1);
             }
-            else
-            {
-                object.move_none();
-            }
         }
 
         
         refresh();
+        usleep(200000);
     }
 
 
