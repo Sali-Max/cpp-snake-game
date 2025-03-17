@@ -1,5 +1,6 @@
 #include<iostream>
 #include<string>
+#include<cstring>
 #include<ncurses.h> //console managment
 #include<unistd.h> // sleep()
 #include<vector>
@@ -11,12 +12,11 @@ enum Direction {up, down, left, right, none};
 class snake
 {
     private:
-        int body_size = 2;
         Direction direction = up;
         bool getFood = false;
     public:
-
-        vector<pair<int, int>> body = {{12,19}, {12,10}};
+        
+        vector<pair<int, int>> body = {{0,0}, {0,0}};   
         int food_x = 4;
         int food_y = 3;
     
@@ -27,6 +27,11 @@ class snake
                 srand(time(0));
                 food_y = rand() % h;
                 food_x = rand() % w;
+                
+        
+                body.push_back({body.back().first, body.back().second });
+
+
                 getFood = false;
             }
     
@@ -48,19 +53,31 @@ class snake
         
         void move_up()
         {
-            direction = Direction::up;
+            if(direction != Direction::down)
+            {
+                direction = Direction::up;
+            }
         }
         void move_down()
         {
-            direction = Direction::down;
+            if(direction != Direction::up)
+            {
+                direction = Direction::down;
+            }
         }
         void move_left()
         {
-            direction = Direction::left;
+            if(direction != Direction:: right)
+            {
+                direction = Direction::left;
+            }
         }
         void move_right()
         {
-            direction = Direction::right;
+            if(direction != Direction::left)
+            {
+                direction = Direction::right;
+            }
         }
         void move_none()
         {
@@ -76,12 +93,9 @@ class snake
         }
         int get_size()
         {
-            return body_size;
+            return body.size();
         }
-        void add_size()
-        {
-            body_size++;
-        }
+
 };
 
 
@@ -118,14 +132,27 @@ void run(int h, int w, snake& object)
     keypad(stdscr, TRUE); // Special key
 
     
-    
-
     while (true)
     {
         clear();
         
         drawFrame(h, w);
         
+        //update body Position
+        if(object.whatis_direction() != Direction::none)    //fix Press other key to hide body
+        {
+            for (int i = object.body.size()-1; i > 0; i--)
+            {
+                object.set_body_value(object.body[i-1].first, object.body[i-1].second, i);
+            }
+            
+
+
+            // object.set_body_value(object.body.back().first, object.body.back().second, 1);
+            object.set_body_value(start_x, start_y, 1);
+            
+        }
+
 
         // Update head Position
         if(object.whatis_direction() == Direction::up)
@@ -145,19 +172,11 @@ void run(int h, int w, snake& object)
             start_x++;   
         }
 
-        //update body Position
-        if(object.whatis_direction() != Direction::none)    //fix Press other key to hide body
-        {
-            for (size_t i = object.get_size() ; i > 1; i--)
-            {
-                object.set_body_value(object.body.back().first, object.body.back().second, i-1);
-            }
-            object.set_body_value(start_x, start_y, 0);
-        }
+        
 
 
         mvprintw(start_y, start_x, "@");    //Draw head
-        for (size_t i = 0; i < object.get_size(); i++)  //Drow Body
+        for (size_t i = 0; i <= object.get_size(); i++)  //Drow Body
         {
             mvprintw(object.body[i].second,object.body[i].first,"@");
         }
