@@ -1,8 +1,8 @@
 #include<iostream>
 #include<string>
-#include<iomanip>
-#include<ncurses.h>
-#include<unistd.h>
+#include<ncurses.h> //console managment
+#include<unistd.h> // sleep()
+#include<vector>
 using namespace std;
 
 //Global
@@ -14,6 +14,7 @@ class snake
         int size = 1;
         Direction direction = up;
     public:
+        vector<pair<int, int>> body = {{0,0}};
         void move_up()
         {
             direction = Direction::up;
@@ -38,6 +39,14 @@ class snake
         {
             return direction;
         }
+        void set_body_value(int x, int y, int index)
+        {
+            body[index] = {x, y};
+        }
+        int get_size()
+        {
+            return size;
+        }
         void add_size()
         {
             size++;
@@ -56,8 +65,11 @@ void run(int h, int w, snake object)
     curs_set(0);
     keypad(stdscr, TRUE); // Special key
 
+
+    
+
     while (true)
-    {        
+    {
         clear();
         { //Frame
             for (size_t i = 0; i < w; i++)
@@ -78,7 +90,14 @@ void run(int h, int w, snake object)
 
         }
         
-        // snake Position
+        
+        //update body
+        if(object.whatis_direction() != Direction::none)    //fix hide body
+        {
+            object.set_body_value(start_x, start_y, 0);
+        }
+
+        // Update snake Position
         if(object.whatis_direction() == Direction::up)
         {
             start_y++;
@@ -97,10 +116,14 @@ void run(int h, int w, snake object)
         }
 
         mvprintw(start_y, start_x, "@");    //Draw Snake head
-
-        
-        // Direction get and set Value
+        for (size_t i = 0; i < object.get_size(); i++)
         {
+            mvprintw(object.body[i].second,object.body[i].first,"@");
+        }
+        
+        
+        
+        { // Direction get and set Value
             int key = getch();
             if(key == 258) //UP
             {
@@ -140,6 +163,6 @@ int main()
 {
     snake player;
 
-    run(10,25, player);
+    run(15,25, player);
     return 0;
 }
