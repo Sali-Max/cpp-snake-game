@@ -3,15 +3,13 @@
 A simple terminal-based Snake game written in C++ using `ncurses`.
 
 ## Features
-- Classic Snake game mechanics
 - Keyboard controls for movement
 - Dynamic screen resizing support
 - Collision detection for walls and self
 - Randomly generated food items
-- Adjustable game speed
 
 ## Requirements
-- Linux-based OS (Tested on Arch Linux)
+- Linux-based Game
 - g++ compiler
 - `ncurses` library
 
