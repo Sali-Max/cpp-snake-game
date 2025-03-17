@@ -3,6 +3,7 @@
 #include<cstring>
 #include<ncurses.h> //console managment
 #include<unistd.h> // sleep()
+#include<sys/ioctl.h>
 #include<vector>
 using namespace std;
 
@@ -14,10 +15,10 @@ class snake
     private:
         Direction direction = none;
         bool getFood = false;
-        int snake_delay = 200000;
+        int snake_delay = 180000;
     public:
         
-        vector<pair<int, int>> body = {{0,0}, {0,0}};   
+        vector<pair<int, int>> body = {{0,0}};   
         int food_x = 4;
         int food_y = 3;
 
@@ -29,9 +30,8 @@ class snake
                 food_y = (rand() % (h-2))+1;
                 food_x = (rand() % (w-2))+1;
                 
+                body.push_back({body.back().first, body.back().second});
                 
-                                
-                body.push_back({body.back().first, body.back().second });
 
                 getFood = false;
             }
@@ -114,7 +114,7 @@ void drawFrame(int h, int w)
     printw("\n");
     for (int i=1; i < (h-1); i++) {
         printw("#");
-        // cout << setw(w - 1) << "#";
+        
         mvprintw(i, w-1, "#");
         printw("\n");
     }
@@ -124,26 +124,66 @@ void drawFrame(int h, int w)
     }
 }
 
-
-
-void run(int h, int w, snake& object)
+void gameOver()
 {
-    int start_y = h / 2;    //Start Position
-    int start_x = w / 2;
+    endwin();
+    printf("gameOver");
+    exit(0);
+}
 
-    
+void colission(int h, int w, int start_x, int start_y, snake& object)
+{   
+    ////////////////////////////////// head Check
+    if(start_y == 0 or start_y == h-1)
+    {
+        gameOver();
+    }
+    else if(start_x == 0 or start_x == w-1)
+    {
+        
+        gameOver();
+    }
+    //////////////////////////////////
+    /////////////////////////////////////////// Body Check
+    for(int i=1; i < object.body.size(); i++)
+    {
+        if (start_x == object.body[i].first && start_y == object.body[i].second) //debug
+        {   
+            gameOver();
+        }
+        
+    }
+    ///////////////////////////////////////////
+}
+
+void run(snake& object) 
+{
+    int h;
+    int w;
+
+    ///////////////////////////////////////// get scr size for generate start snake position
+    struct winsize startpos;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &startpos);
+    /////////////////////////////////////////
+    int start_y = (startpos.ws_row-1)/ 2;    //Start Position
+    int start_x = (startpos.ws_col-1) / 2;
 
     initscr();
-    noecho();
-
-    //curs_set(0);
-
-    nodelay(stdscr, TRUE);
+    noecho();   //not show input char 
+    curs_set(0);
+    nodelay(stdscr, TRUE);  // no wait for get input
     keypad(stdscr, TRUE); // Special key
 
     
     while (true)
     {
+        ////////////////////////////////////////////////////// Update Scr Size
+        struct winsize scr;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &scr);  // Get Terminal Detail
+        h = scr.ws_row-1;
+        w = scr.ws_col-1;
+        ///////////////////////////////////////////////////////
+        
         
         clear();
         
@@ -157,13 +197,14 @@ void run(int h, int w, snake& object)
                 object.set_body_value(object.body[i-1].first, object.body[i-1].second, i);
             }
         
-
-            object.set_body_value(start_x, start_y, 1);
-            
+            object.set_body_value(start_x, start_y, 0);
         }
 
-
-        // Update head Position
+        
+        
+        colission(h, w, start_x, start_y, object);  // Game Over Handled
+        
+        ////////////////////////////////////////////////// Update head Position
         if(object.whatis_direction() == Direction::up)
         {
             start_y++;
@@ -180,15 +221,11 @@ void run(int h, int w, snake& object)
         {
             start_x++;   
         }
-
+        ///////////////////////////////////////////////////
         
 
-
-        mvprintw(start_y, start_x, "@");    //Draw head
-        for (size_t i = 0; i <= object.get_size(); i++)  //Drow Body
-        {
-            mvprintw(object.body[i].second,object.body[i].first,"@");
-        }
+        
+        
         
 
         if(start_x == object.food_x and start_y == object.food_y) //check get food
@@ -198,32 +235,45 @@ void run(int h, int w, snake& object)
 
         object.generate_food(h, w);
 
-        {   //input
-            int key = getch();
-            if(key == 258) //UP
-            {
-                object.move_up();
-            }
-            else if(key == 259) //DOWN
-            {
-                object.move_down(); 
-            }
-            else if(key == 260) //LEFT
-            {
-                object.move_left();
-            }
-            else if(key == 261) //RIGHT
-            {
-                object.move_right();
-            }
-            else if(key == 27)
-            {
-                endwin();
-                exit(1);
-            }
-        }
 
-        
+        ////////////////////////////////////// Draw Snake
+        mvprintw(start_y, start_x, "@");    //head
+        for (size_t i = 0; i < object.get_size(); i++)  //Body
+        {
+            mvprintw(object.body[i].second,object.body[i].first,"@");
+        }
+        //////////////////////////////////////
+
+        ////////////////////// input
+        int key = getch();
+        if(key == 258) //UP
+        {
+            object.move_up();
+            // flushinp(); //clear input buffer
+        }
+        else if(key == 259) //DOWN
+        {
+            object.move_down(); 
+            // flushinp(); //clear input buffer
+        }
+        else if(key == 260) //LEFT
+        {
+            object.move_left();
+            // flushinp(); //clear input buffer
+        }
+        else if(key == 261) //RIGHT
+        {
+            object.move_right();
+            // flushinp(); //clear input buffer
+        }
+        else if(key == 27)
+        {
+            endwin();
+            exit(1);
+        }
+        ////////////////////////////endInput
+
+
         refresh();
         usleep(object.get_delay()); //Snake Speed
     }
@@ -236,6 +286,6 @@ int main()
 {
     snake player;
 
-    run(6,6 , player);
+    run(player);
     return 0;
 }
