@@ -3,7 +3,7 @@
 #include<cstring>
 #include<ncurses.h> //console managment
 #include<unistd.h> // sleep()
-#include<sys/ioctl.h>
+#include<sys/ioctl.h> //get Src Size 
 #include<vector>
 using namespace std;
 
@@ -15,13 +15,19 @@ class snake
     private:
         Direction direction = none;
         bool getFood = false;
-        int snake_delay = 180000;
+        int snake_delay = 150000;
     public:
         
         vector<pair<int, int>> body = {{0,0}};   
         int food_x = 4;
         int food_y = 3;
 
+
+        void faster_snake()
+        {
+            snake_delay -= 50;
+        }
+        
         void generate_food(int h, int w)
         {
             if(getFood == true)
@@ -32,7 +38,7 @@ class snake
                 
                 body.push_back({body.back().first, body.back().second});
                 
-
+                faster_snake();
                 getFood = false;
             }
     
@@ -50,8 +56,8 @@ class snake
         bool footStatus()
         {
             return getFood;
-        }
         
+        }
         int get_delay()
         {
             return snake_delay;
@@ -102,7 +108,6 @@ class snake
         }
 
 };
-
 
 
 void drawFrame(int h, int w)
